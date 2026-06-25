@@ -9,11 +9,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.stereotype.Repository;
 
 /**
  *
  * @author Micro
  */
+@Repository
 public class UserDAO {
     
     public void register(UserDTO u){
@@ -51,8 +55,8 @@ public class UserDAO {
         try{
             
             Connection conn = Conexao.connect();
-            PreparedStatement stmt = conn.prepareStatement(""
-                    + "select * from users where email = ? and senha = ?");
+            PreparedStatement stmt = conn.prepareStatement(
+                    "select * from users where email = ? and senha = ?");
             stmt.setString(1, email);
             stmt.setString(2, senha);
             ResultSet rs = stmt.executeQuery();
@@ -75,4 +79,78 @@ public class UserDAO {
         
         return u;
     }
+    
+    
+    public List<UserDTO> listUsers(){
+        List<UserDTO> users = new ArrayList<>();
+        
+        try {
+            
+            Connection conn = Conexao.connect();
+            PreparedStatement stmt = conn.prepareStatement("select * from users");
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()){
+                UserDTO u = new UserDTO();
+                u.setIdUser(rs.getLong("idUser"));
+                u.setEmail(rs.getString("email"));
+                u.setSenha(rs.getString("senha"));
+                u.setNome(rs.getString("nome"));
+                u.setCpf(rs.getString("cpf"));
+                u.setTelefone(rs.getString("telefone"));
+                u.setEndereco(rs.getString("endereco"));
+                u.setDataNascimento(rs.getString("dataNascimento"));
+                u.setCargo(rs.getString("cargo"));
+                
+                users.add(u);
+            }
+            
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+        
+        return users;
+    }
+    
+    
+    public UserDTO addAdmin(Long idUser) {
+        UserDTO u = new UserDTO();
+
+        try {
+            Connection conn = Conexao.connect();
+            PreparedStatement stmt = conn.prepareStatement(
+                    "update users set cargo = ? where id = ?");
+            stmt.setString(1, "administrador");
+            stmt.setLong(2, idUser);
+            
+            int linhasAfetadas = stmt.executeUpdate();
+            if (linhasAfetadas > 0) {
+                u.setCargo("administrador");
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return u;
+    }
+    
+    public int deleteUser(Long id){
+        
+        try {
+            
+            Connection conn = Conexao.connect();
+            PreparedStatement stmt = conn.prepareStatement(
+                    "delete from users where id = ?");
+            stmt.setLong(1, id);
+            
+            return stmt.executeUpdate();
+            
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+        
+        return 0;
+    }
+    
 }

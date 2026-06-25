@@ -19,6 +19,9 @@ public class UserService {
     @Autowired
     private UserDAO udao;
     
+    @Autowired
+    private TokenService tServ;
+    
     public void register(UserDTO u) {
         String message = "";
         if (u.getNome().isEmpty()) {
@@ -39,19 +42,20 @@ public class UserService {
     }
     
     
-//    public String login(UserDTO u){
-//        String message = "";
-//        if (u.getEmail().isEmpty()) {
-//            message = "E-mail não preenchido";
-//        } else if (u.getSenha().isEmpty()) {
-//            message = "Senha não preenchida";
-//        }
-//
-//        if (!message.isEmpty()) {
-//            throw new ResponseStatusException(HttpStatusCode.valueOf(400), message);
-//        }
-//
-//        UserDTO dados = udao.login(u.getEmail(), u.getSenha());
-//        return tokenService.gerarToken(loggedData);
-//    }
+    public String login(UserDTO u){
+        String message = "";
+        if (u.getEmail().isEmpty()) {
+            message = "E-mail não preenchido";
+        } else if (u.getSenha().isEmpty()) {
+            message = "Senha não preenchida";
+        }
+
+        if (!message.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), message);
+        }
+
+        UserDTO dados = udao.login(u.getEmail(), u.getSenha());
+        return tServ.gerarToken(dados);
+    }
+    
 }
