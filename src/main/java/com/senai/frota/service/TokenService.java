@@ -37,7 +37,7 @@ public class TokenService {
     
     
     public String gerarToken(UserDTO user) {
-        if ((user.getIdUser() == 0 || user.getIdUser() == null) ||
+        if ((user.getIdUser() == null || user.getIdUser() == 0) ||
                 user.getNome().isEmpty() ||
                 user.getEmail().isEmpty() ||
                 user.getSenha().isEmpty()) {

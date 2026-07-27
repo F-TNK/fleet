@@ -29,7 +29,7 @@ public class EquipDAO {
             PreparedStatement stmt = conn.prepareStatement("Select * from equip");
             ResultSet rs = stmt.executeQuery();
             
-            if (rs.next()){
+            while (rs.next()){
                 EquipDTO e = new EquipDTO();
                 e.setIdEquip(rs.getLong("idEquip"));
                 e.setNome(rs.getString("nome"));
@@ -38,7 +38,7 @@ public class EquipDAO {
                 e.setHorasUso(rs.getDouble("horas_uso"));
                 e.setVidaUtil(rs.getDouble("vida_util"));
                 e.setNivelCombustivel(rs.getDouble("nivel_combustivel"));
-                e.setStatus(rs.getString("staus"));
+                e.setStatus(rs.getString("status"));
                 
                 lista.add(e);
             }
@@ -84,7 +84,7 @@ public class EquipDAO {
             
             Connection conn = Conexao.connect();
             PreparedStatement stmt = conn.prepareStatement(
-                    "update equip nome = ?, modelo = ?, data_aquisicao = ?,"
+                    "update equip set nome = ?, modelo = ?, data_aquisicao = ?,"
                     + " horas_uso = ?, vida_util = ?, nivel_combustivel = ?, status = ?"
                     + "where idEquip = ?");
             
@@ -95,6 +95,7 @@ public class EquipDAO {
             stmt.setDouble(5, equip.getVidaUtil());
             stmt.setDouble(6, equip.getNivelCombustivel());
             stmt.setString(7, equip.getStatus());
+            stmt.setLong(8, equip.getIdEquip());
             
             return stmt.executeUpdate();
             
@@ -112,7 +113,7 @@ public class EquipDAO {
             
             Connection conn = Conexao.connect();
             PreparedStatement stmt = conn.prepareStatement(
-                    "delete from equip where id = ?");
+                    "delete from equip where idequip = ?");
             stmt.setLong(1, id);
             
             return stmt.executeUpdate();

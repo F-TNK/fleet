@@ -112,27 +112,34 @@ public class UserDAO {
         return users;
     }
     
-    
-    public UserDTO addAdmin(Long idUser) {
-        UserDTO u = new UserDTO();
-
+    public int editUser (UserDTO u){
+        
         try {
+            
             Connection conn = Conexao.connect();
             PreparedStatement stmt = conn.prepareStatement(
-                    "update users set cargo = ? where id = ?");
-            stmt.setString(1, "administrador");
-            stmt.setLong(2, idUser);
+                    "update users set email = ?, senha = ?, nome = ?,"
+                    + " cpf = ?, telefone = ?, endereco = ?, "
+                    + "dataNascimento = ?, cargo = ?"
+                    + "where idUser = ?");
             
-            int linhasAfetadas = stmt.executeUpdate();
-            if (linhasAfetadas > 0) {
-                u.setCargo("administrador");
-            }
+            stmt.setString(1, u.getEmail());
+            stmt.setString(2, u.getSenha());
+            stmt.setString(3, u.getNome());
+            stmt.setString(4, u.getCpf());
+            stmt.setString(5, u.getTelefone());
+            stmt.setString(6, u.getEndereco());
+            stmt.setString(7, u.getDataNascimento());
+            stmt.setString(8, u.getCargo());
+            stmt.setLong(9, u.getIdUser());
             
-        } catch (SQLException e) {
+            return stmt.executeUpdate();
+            
+        } catch (SQLException e){
             e.printStackTrace();
         }
-
-        return u;
+        
+        return 0;
     }
     
     public int deleteUser(Long id){
@@ -141,7 +148,7 @@ public class UserDAO {
             
             Connection conn = Conexao.connect();
             PreparedStatement stmt = conn.prepareStatement(
-                    "delete from users where id = ?");
+                    "delete from users where iduser = ?");
             stmt.setLong(1, id);
             
             return stmt.executeUpdate();
