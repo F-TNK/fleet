@@ -478,6 +478,7 @@ public class LiberacaoDAO {
                     "update liberacao set data_hora_retirada_real = ?, horimetro_inicial = ?, "
                     + "combustivel_inicial = ? where id = ?");
             
+            
             stmt.setTimestamp(1, l.getDataHoraRetiradaReal() != null ? Timestamp.valueOf(l.getDataHoraRetiradaReal()) : null);
             // Metodo reverso do list
             // Trata como Object o que vem nulo e transforma em Double

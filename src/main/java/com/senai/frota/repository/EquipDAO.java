@@ -51,6 +51,32 @@ public class EquipDAO {
         return lista;
     }
     
+    public EquipDTO findById(Long id) {
+        EquipDTO equip = null;
+        
+        try {
+            Connection conn = Conexao.connect();
+            PreparedStatement stmt = conn.prepareStatement("Select * from equip where idequip = ?");
+            stmt.setLong(1, id);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                equip = new EquipDTO();
+                equip.setIdEquip(rs.getLong("idEquip"));
+                equip.setNome(rs.getString("nome"));
+                equip.setModelo(rs.getString("modelo"));
+                equip.setDataAquisicao(rs.getString("data_aquisicao"));
+                equip.setHorasUso(rs.getDouble("horas_uso"));
+                equip.setVidaUtil(rs.getDouble("vida_util"));
+                equip.setNivelCombustivel(rs.getDouble("nivel_combustivel"));
+                equip.setStatus(rs.getString("status"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return equip;
+    }
+    
     
     public int addEquip (EquipDTO equip){
         
