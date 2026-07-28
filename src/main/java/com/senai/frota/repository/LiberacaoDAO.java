@@ -140,6 +140,7 @@ public class LiberacaoDAO {
                 "INNER JOIN equip e ON l.idequip = e.idequip " +
                 "WHERE l.data_hora_devolucao_real IS NULL");
             ResultSet rs = stmt.executeQuery();
+            // INNER JOIN pra nomes de usuario e equipamento
 
             while (rs.next()) {
                 LiberacaoDTO l = new LiberacaoDTO();
@@ -188,7 +189,7 @@ public class LiberacaoDAO {
         List<LiberacaoDTO> liberacoes = new ArrayList<>();
         try {
             Connection conn = Conexao.connect();
-            // AQUI: ADICIONADO INNER JOIN PARA BUSCAR OS NOMES DO OPERADOR E EQUIPAMENTO
+            
             PreparedStatement stmt = conn.prepareStatement(
                 "SELECT l.*, u.nome AS nomeOp, e.nome AS nomeEquip " +
                 "FROM liberacao l " +
@@ -196,6 +197,7 @@ public class LiberacaoDAO {
                 "INNER JOIN equip e ON l.idequip = e.idequip " +
                 "WHERE l.data_hora_devolucao_real IS NOT NULL AND l.alerta = false");
             ResultSet rs = stmt.executeQuery();
+            // INNER JOIN pra nomes de usuario e equipamento
 
             while (rs.next()) {
                 LiberacaoDTO l = new LiberacaoDTO();
@@ -535,6 +537,41 @@ public class LiberacaoDAO {
             e.printStackTrace();
         }
         return 0;
+    }
+    
+    
+    public boolean conflitoHorario(Long idEquip, LocalDateTime novaRetirada, LocalDateTime novaDevolucao, Long idLiberacaoAtual) {
+        try {
+            Connection conn = Conexao.connect();
+            String sql = "SELECT COUNT(*) FROM liberacao WHERE idequip = ? "
+                       + "AND data_hora_devolucao_real IS NULL "
+                       + "AND data_hora_retirada < ? AND data_hora_devolucao > ?";
+            
+            // Se estiver editando ignora a própria liberação na contagem
+            if (idLiberacaoAtual != null) {
+                sql += " AND id != ?";
+            }
+            
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setLong(1, idEquip);
+            stmt.setTimestamp(2, Timestamp.valueOf(novaDevolucao));
+            stmt.setTimestamp(3, Timestamp.valueOf(novaRetirada));
+            
+            if (idLiberacaoAtual != null) {
+                stmt.setLong(4, idLiberacaoAtual);
+            }
+            
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0; 
+                // true se tiver 1 ou mais conflitos
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return false; 
+        // False se nao tiver conflito
     }
     
 }

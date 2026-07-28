@@ -4,7 +4,9 @@
  */
 package com.senai.frota.service;
 
+import com.senai.frota.model.EquipDTO;
 import com.senai.frota.model.LiberacaoDTO;
+import com.senai.frota.repository.EquipDAO;
 import com.senai.frota.repository.LiberacaoDAO;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +24,9 @@ public class LiberacaoService {
     
     @Autowired
     private LiberacaoDAO ldao;
+    
+    @Autowired
+    private EquipDAO edao;
 
     // ------------------------- ADMIN ------------------------
 
@@ -50,6 +55,8 @@ public class LiberacaoService {
                 message = "A data/hora de devolução não pode ser no passado.";
             } else if (l.getDataHoraDevolucao().isBefore(l.getDataHoraRetirada())) {
                 message = "A data/hora de devolução não pode ser anterior à data/hora de retirada.";
+            } else if (ldao.conflitoHorario(l.getIdEquip(), l.getDataHoraRetirada(), l.getDataHoraDevolucao(), null)) {
+                message = "O equipamento já possui um agendamento conflitante para este período.";
             }
         }
 
@@ -77,6 +84,12 @@ public class LiberacaoService {
             message = "A data/hora de devolução não pode ser anterior à data/hora de retirada";
         }
         
+        if (message.isEmpty()) {
+            if (ldao.conflitoHorario(l.getIdEquip(), l.getDataHoraRetirada(), l.getDataHoraDevolucao(), l.getId())) {
+                message = "O equipamento já possui outro agendamento conflitante para este período.";
+            }
+        }
+        
         if (!message.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
@@ -94,13 +107,24 @@ public class LiberacaoService {
         String message = "";
         LocalDateTime agora = LocalDateTime.now();
         
-        if (l.getHorimetroInicial() == null) {
-            message = "Horímetro inicial não informado.";
-        } else if (l.getCombustivelInicial() == null) {
-            message = "Combustível inicial não informado.";
+        // puxa os dados do equip pro formulario
+        EquipDTO equip = edao.findById(l.getIdEquip());
+        if (equip == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipamento não encontrado.");
+        }
+        
+        if (equip.getStatus().equals("Em Uso") || equip.getStatus().equals("Em Manutenção")) {
+            message = "Operação bloqueada: O equipamento está indisponível no momento";
+        } else if (equip.getNivelCombustivel() < 25) {
+            message = "Operação bloqueada: O nível de combustível do equipamento esá muito baixo";
+        } else if (equip.porcentUso() >= 90) {
+            message = "Operação bloqueada: A máquina ultrapassou 90% da sua vida útil";
         }
 
         if (message.isEmpty()) {
+            // convertendo atributos de um DTO pro outro
+            l.setHorimetroInicial(equip.getHorasUso());
+            l.setCombustivelInicial(equip.getNivelCombustivel());
             // nao pode ser retirado antes do horario
             if (agora.isBefore(l.getDataHoraRetirada())) {
                 message = "O equipamento não pode ser retirado antes da data e hora agendadas";
@@ -113,7 +137,10 @@ public class LiberacaoService {
         
         // timestamp automatico da retirada 
         l.setDataHoraRetiradaReal(agora);
-        
+        // updt de status automatico da retirada 
+        equip.setStatus("Em Uso");
+        edao.editEquip(equip);
+
         ldao.pickUp(l);
     }
 
@@ -123,8 +150,7 @@ public class LiberacaoService {
         
         // registro automático - data/hora devolucao
         l.setDataHoraDevolucaoReal(agora);
-
-        // Validacao dos campos obrigatorios
+        
         if (l.getHorimetroFinal() == null) {
             message = "Horímetro final não preenchido";
         } else if (l.getCombustivelFinal() == null) {
@@ -132,7 +158,6 @@ public class LiberacaoService {
         } 
 
         if (message.isEmpty()) {
-            // horimetro final nao pode ser menor que o inicial
             if (l.getHorimetroFinal() < l.getHorimetroInicial()) {
                 message = "O horímetro final não pode ser menor do que o horímetro inicial";
             } 
@@ -150,6 +175,26 @@ public class LiberacaoService {
         }
 
         ldao.close(l);
+        
+        // mandando dados finais automatico num objeto equip
+        // Reportar Problema --> setStatus
+        // findById --> editEquip (update)
+        EquipDTO equip = edao.findById(l.getIdEquip());
+        
+        if (equip != null) {
+            if (l.isAlerta()) {
+                equip.setStatus("Em Manutenção"); 
+            } else {
+                equip.setStatus("Disponível"); 
+            }
+
+            equip.setHorasUso(l.getHorimetroFinal());
+            equip.setNivelCombustivel(l.getCombustivelFinal());
+            edao.editEquip(equip);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipamento não encontrado.");
+        }
+        
     }
 
     
