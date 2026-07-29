@@ -46,6 +46,10 @@ public class EquipService {
         }
         return edao.editEquip(equip);
     }
+    
+    public EquipDTO findById(Long id) {
+        return edao.findById(id);
+    }
 
     public int deleteById(Long id){
         return edao.deleteById(id);

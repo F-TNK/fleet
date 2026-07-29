@@ -107,6 +107,13 @@ public class LiberacaoService {
         String message = "";
         LocalDateTime agora = LocalDateTime.now();
         
+        if (l.getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID da liberação não encontrado.");
+        }
+        if (l.getIdEquip() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID do equipamento não encontrado.");
+        }
+        
         // puxa os dados do equip pro formulario
         EquipDTO equip = edao.findById(l.getIdEquip());
         if (equip == null) {

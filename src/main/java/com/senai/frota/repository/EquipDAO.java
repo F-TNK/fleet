@@ -52,7 +52,11 @@ public class EquipDAO {
     }
     
     public EquipDTO findById(Long id) {
-        EquipDTO equip = null;
+        EquipDTO equip = new EquipDTO();
+        
+        if (id == null) {
+            return null;
+        }
         
         try {
             Connection conn = Conexao.connect();
@@ -61,7 +65,7 @@ public class EquipDAO {
             ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
-                equip = new EquipDTO();
+                
                 equip.setIdEquip(rs.getLong("idEquip"));
                 equip.setNome(rs.getString("nome"));
                 equip.setModelo(rs.getString("modelo"));

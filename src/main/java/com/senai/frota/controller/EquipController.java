@@ -50,4 +50,9 @@ public class EquipController {
         eService.deleteById(id);
         return "Equipamento excluído com sucesso";
     }
+    
+    @GetMapping("/{id}")
+    public EquipDTO findById(Long id) {
+        return eService.findById(id);
+    }
 }
