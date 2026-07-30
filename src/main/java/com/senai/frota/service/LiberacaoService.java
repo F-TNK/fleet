@@ -47,6 +47,8 @@ public class LiberacaoService {
 
         if (message.isEmpty()) {
             LocalDateTime agora = LocalDateTime.now();
+            // puxa os dados do equip pro formulario
+            EquipDTO equip = edao.findById(l.getIdEquip());
             
             // regras de negocio para logica de horarios
             if (l.getDataHoraRetirada().isBefore(agora)) {
@@ -57,6 +59,8 @@ public class LiberacaoService {
                 message = "A data/hora de devolução não pode ser anterior à data/hora de retirada.";
             } else if (ldao.conflitoHorario(l.getIdEquip(), l.getDataHoraRetirada(), l.getDataHoraDevolucao(), null)) {
                 message = "O equipamento já possui um agendamento conflitante para este período.";
+            } else if (equip.porcentUso() >= 90) {
+                message = "Operação bloqueada: A máquina ultrapassou 90% da sua vida útil";
             }
         }
 
@@ -85,8 +89,12 @@ public class LiberacaoService {
         }
         
         if (message.isEmpty()) {
+            EquipDTO equip = edao.findById(l.getIdEquip());
+            
             if (ldao.conflitoHorario(l.getIdEquip(), l.getDataHoraRetirada(), l.getDataHoraDevolucao(), l.getId())) {
                 message = "O equipamento já possui outro agendamento conflitante para este período.";
+            } else if (equip.porcentUso() >= 90) {
+                message = "Operação bloqueada: A máquina ultrapassou 90% da sua vida útil";
             }
         }
         
@@ -120,6 +128,12 @@ public class LiberacaoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipamento não encontrado.");
         }
         
+        LiberacaoDTO lib = ldao.findById(l.getId());
+        if (lib == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Liberação não encontrada.");
+        }
+        
+        
         if (equip.getStatus().equals("Em Uso") || equip.getStatus().equals("Em Manutenção")) {
             message = "Operação bloqueada: O equipamento está indisponível no momento";
         } else if (equip.getNivelCombustivel() < 25) {
@@ -133,7 +147,7 @@ public class LiberacaoService {
             l.setHorimetroInicial(equip.getHorasUso());
             l.setCombustivelInicial(equip.getNivelCombustivel());
             // nao pode ser retirado antes do horario
-            if (agora.isBefore(l.getDataHoraRetirada())) {
+            if (agora.isBefore(lib.getDataHoraRetirada())) {
                 message = "O equipamento não pode ser retirado antes da data e hora agendadas";
             }
         }

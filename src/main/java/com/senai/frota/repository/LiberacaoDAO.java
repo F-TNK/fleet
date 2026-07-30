@@ -574,4 +574,52 @@ public class LiberacaoDAO {
         // False se nao tiver conflito
     }
     
+    public LiberacaoDTO findById (Long id){
+        LiberacaoDTO l = new LiberacaoDTO();
+        
+        if (id == null) {
+            return null;
+        }
+        
+        try{
+            
+            Connection conn = Conexao.connect();
+            PreparedStatement stmt = conn.prepareStatement(
+                    "select id, iduser, idequip, data_hora_retirada, "
+                    + "data_hora_devolucao, horimetro_inicial, "
+                    + "combustivel_inicial, local_uso, observacoes_retirada "
+                    + "from liberacao where id = ?");
+            stmt.setLong(1, id);
+            ResultSet rs = stmt.executeQuery();
+            
+            
+            if (rs.next()){
+                l = new LiberacaoDTO();
+                
+                l.setId(rs.getLong("id"));
+                l.setIdOperador(rs.getLong("iduser"));
+                l.setIdEquip(rs.getLong("idequip"));
+                // Conversao Java --> SQL
+                Timestamp retirada = rs.getTimestamp("data_hora_retirada");
+                if (retirada != null) {
+                    l.setDataHoraRetirada(retirada.toLocalDateTime());
+                }
+                Timestamp devolucao = rs.getTimestamp("data_hora_devolucao");
+                if (devolucao != null) {
+                    l.setDataHoraDevolucao(devolucao.toLocalDateTime());
+                }
+                l.setHorimetroInicial(rs.getObject("horimetro_inicial") != null ? rs.getDouble("horimetro_inicial") : null);
+                l.setCombustivelInicial(rs.getObject("combustivel_inicial") != null ? rs.getDouble("combustivel_inicial") : null);
+
+                l.setLocalUso(rs.getString("local_uso"));
+                l.setObservacoesRetirada(rs.getString("observacoes_retirada"));             
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return l;
+    }
+    
 }
