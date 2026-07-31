@@ -419,11 +419,10 @@ public class LiberacaoDAO {
         try {
             Connection conn = Conexao.connect();
             PreparedStatement stmt = conn.prepareStatement(
-                "SELECT l.*, u.nome AS nomeOp, e.nome AS nomeEquip " +
-                "FROM liberacao l " +
-                "INNER JOIN users u ON l.iduser = u.iduser " +
-                "INNER JOIN equip e ON l.idequip = e.idequip " +
-                "WHERE l.iduser = ? AND l.data_hora_devolucao_real IS NULL");
+                "SELECT l.*, u.nome AS nomeOp, e.nome AS nomeEquip, e.horas_uso, e.nivel_combustivel "
+                + "FROM liberacao l INNER JOIN users u ON l.iduser = u.iduser "
+                + "INNER JOIN equip e ON l.idequip = e.idequip "
+                + "WHERE l.iduser = ? AND l.data_hora_devolucao_real IS NULL");
             stmt.setLong(1, idUser);
             ResultSet rs = stmt.executeQuery();
             // INNER JOIN pra nomes de usuario e equipamento
@@ -436,7 +435,8 @@ public class LiberacaoDAO {
                 l.setNomeOp(rs.getString("nomeOp")); 
                 l.setIdEquip(rs.getLong("idequip"));
                 l.setNomeEquip(rs.getString("nomeEquip")); 
-                // conversao Timestamp (SQL) pra LocalDateTime (Java) 
+                
+                // SQL --> Java
                 if (rs.getTimestamp("data_hora_retirada") != null){
                     l.setDataHoraRetirada(rs.getTimestamp("data_hora_retirada").toLocalDateTime());
                 }
@@ -450,9 +450,12 @@ public class LiberacaoDAO {
                     l.setDataHoraDevolucaoReal(rs.getTimestamp("data_hora_devolucao_real").toLocalDateTime());
                 }
                 
-                // getObject para double caso estejam null
-                l.setHorimetroInicial((Double) rs.getObject("horimetro_inicial"));
-                l.setCombustivelInicial((Double) rs.getObject("combustivel_inicial"));
+                // Equip --> Liberacao
+                Double horimetroInicial = (Double) rs.getObject("horimetro_inicial");
+                l.setHorimetroInicial(horimetroInicial != null ? horimetroInicial : rs.getDouble("horas_uso"));
+                Double combustivelInicial = (Double) rs.getObject("combustivel_inicial");
+                l.setCombustivelInicial(combustivelInicial != null ? combustivelInicial : rs.getDouble("nivel_combustivel"));
+                
                 l.setHorimetroFinal((Double) rs.getObject("horimetro_final"));
                 l.setCombustivelFinal((Double) rs.getObject("combustivel_final"));
                 

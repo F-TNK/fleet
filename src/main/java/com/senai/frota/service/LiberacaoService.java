@@ -235,6 +235,7 @@ public class LiberacaoService {
 
     public List<LiberacaoDTO> listById(Long idUser) {
         return ldao.listById(idUser);
+        
     }
     
     public List<LiberacaoDTO> listByOp(Long idUser) {
