@@ -247,6 +247,26 @@ public class LiberacaoService {
     }
 
     public void resolve(Long id) {
+        LiberacaoDTO l = ldao.findById(id);
+        
+        if (l == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Liberação não encontrada.");
+        }
+        
+        EquipDTO equip = edao.findById(l.getIdEquip());
+        if (equip == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipamento não encontrado.");
+        }
+        
+        // vida útil >= 90
+        if (equip.porcentUso() >= 90) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "Equipamento não pode ser liberado. Horímetro muito alto.");
+        }
+        
+        
+        equip.setStatus("Disponível");
+        edao.editEquip(equip);
         ldao.resolve(id);
     }
     
