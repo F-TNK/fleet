@@ -5,7 +5,9 @@
 package com.senai.frota.controller;
 
 import com.senai.frota.model.LiberacaoDTO;
+import com.senai.frota.model.UserDTO;
 import com.senai.frota.service.LiberacaoService;
+import com.senai.frota.service.UserService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +29,9 @@ public class OpController {
     
     @Autowired
     private LiberacaoService lservice;
+    
+    @Autowired
+    private UserService uservice;
 
     @GetMapping("/user/{idUser}")
     public List<LiberacaoDTO> listById(@PathVariable Long idUser) {
@@ -43,6 +48,17 @@ public class OpController {
     public String close(@RequestBody LiberacaoDTO l){
         lservice.close(l);
         return "Devolução registrada com sucesso";
+    }
+    
+    @GetMapping("/{id}")
+    public UserDTO getProfile(@PathVariable Long id) {
+        return uservice.findById(id);
+    }
+
+    @PutMapping("/edit")
+    public String editProfile(@RequestBody UserDTO u) {
+        uservice.editProfile(u);
+        return "Perfil atualizado com sucesso";
     }
     
 }

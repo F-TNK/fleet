@@ -160,4 +160,33 @@ public class UserDAO {
         return 0;
     }
     
+    public UserDTO findById(Long id) {
+        UserDTO u = new UserDTO();
+        
+        try {
+            Connection conn = Conexao.connect();
+            PreparedStatement stmt = conn.prepareStatement(
+                    "select * from users where idUser = ?");
+            stmt.setLong(1, id);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()){
+                u.setIdUser(rs.getLong("idUser"));
+                u.setEmail(rs.getString("email"));
+                u.setSenha(rs.getString("senha"));
+                u.setNome(rs.getString("nome"));
+                u.setCpf(rs.getString("cpf"));
+                u.setTelefone(rs.getString("telefone"));
+                u.setEndereco(rs.getString("endereco"));
+                u.setDataNascimento(rs.getString("dataNascimento"));
+                u.setCargo(rs.getString("cargo"));
+            }
+            
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+        
+        return u;
+    }
+    
 }

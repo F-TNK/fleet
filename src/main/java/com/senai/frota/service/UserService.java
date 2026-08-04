@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -124,6 +125,40 @@ public class UserService {
     
     public int deleteUser(Long id){
         return udao.deleteUser(id);
+    }
+    
+    public UserDTO findById(Long id) {
+        UserDTO u = udao.findById(id);
+        if (u.getIdUser() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado");
+        }
+        return u;
+    }
+
+    public void editProfile(UserDTO u) {
+        String message = "";
+        
+        if (u.getNome() == null || u.getNome().trim().isEmpty()) {
+            message = "Nome não preenchido";
+        } else if (u.getEmail() == null || u.getEmail().trim().isEmpty()) {
+            message = "E-mail não preenchido";
+        } else if (u.getCpf() == null || u.getCpf().trim().isEmpty()) {
+            message = "CPF não preenchido";
+        }
+
+        if (!message.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
+        
+        UserDTO findUser = udao.findById(u.getIdUser());
+        if (findUser.getIdUser() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado");
+        }
+        
+        // seta cargo com GET
+        u.setCargo(findUser.getCargo());
+
+        udao.editUser(u);
     }
     
 }

@@ -8,7 +8,9 @@ import com.senai.frota.model.EquipDTO;
 import com.senai.frota.repository.EquipDAO;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  *
@@ -25,12 +27,20 @@ public class EquipService {
     }
 
     public int addEquip(EquipDTO equip) {
+        String message = "";
+        
         if (equip.getVidaUtil() == null || equip.getVidaUtil() <= 0){
-            throw new IllegalArgumentException(
-                    "Vida útil deve ser maior que zero.");
+            message = "Vida útil deve ser maior que zero.";
         }
         if(equip.getHorasUso() == null){
             equip.setHorasUso(0.0);
+        }
+        if (equip.getHorasUso() > equip.getVidaUtil()){
+            message = "Horas de uso não podem exceder a vida útil.";
+        }
+        
+        if (!message.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
 
         return edao.addEquip(equip);
