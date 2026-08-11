@@ -96,6 +96,10 @@ public class UserService {
         return udao.listUsers(); 
     }
     
+    public List<UserDTO> listOp(String cargo) {
+        return udao.listOp(cargo); 
+    }
+    
     public void editUser(UserDTO u) {
         // .trim() elimina "espacos" no inicio e no fim da STRING. Evita erros
         String message = "";

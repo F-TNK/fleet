@@ -112,6 +112,37 @@ public class UserDAO {
         return users;
     }
     
+    public List<UserDTO> listOp(String cargo){
+        List<UserDTO> users = new ArrayList<>();
+        
+        try {
+            
+            Connection conn = Conexao.connect();
+            PreparedStatement stmt = conn.prepareStatement("select * from users where cargo = 'operador'");
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()){
+                UserDTO u = new UserDTO();
+                u.setIdUser(rs.getLong("idUser"));
+                u.setEmail(rs.getString("email"));
+                u.setSenha(rs.getString("senha"));
+                u.setNome(rs.getString("nome"));
+                u.setCpf(rs.getString("cpf"));
+                u.setTelefone(rs.getString("telefone"));
+                u.setEndereco(rs.getString("endereco"));
+                u.setDataNascimento(rs.getString("dataNascimento"));
+                u.setCargo(rs.getString("cargo"));
+                
+                users.add(u);
+            }
+            
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+        
+        return users;
+    }
+    
     public int editUser (UserDTO u){
         
         try {

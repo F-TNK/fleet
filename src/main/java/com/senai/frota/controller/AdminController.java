@@ -32,6 +32,11 @@ public class AdminController {
     public List<UserDTO> listUsers() {
         return uservice.listUsers();
     }
+    
+    @GetMapping("/{op}")
+    public List<UserDTO> listOp(String cargo) {
+        return uservice.listOp(cargo);
+    }
 
     @PutMapping
     public String editUser(@RequestBody UserDTO u) {
