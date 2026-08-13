@@ -21,15 +21,14 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @Service
 public class LiberacaoService {
-    
+
     @Autowired
     private LiberacaoDAO ldao;
-    
+
     @Autowired
     private EquipDAO edao;
 
     // ------------------------- ADMIN ------------------------
-
     public void register(LiberacaoDTO l) {
         String message = "";
 
@@ -49,17 +48,21 @@ public class LiberacaoService {
             LocalDateTime agora = LocalDateTime.now();
             // puxa os dados do equip pro formulario
             EquipDTO equip = edao.findById(l.getIdEquip());
-            
+
             // regras de negocio para logica de horarios
             if (l.getDataHoraRetirada().isBefore(agora)) {
                 message = "A data/hora de retirada não pode ser registrada no passado.";
-            } else if (l.getDataHoraDevolucao().isBefore(agora)) {
+            } 
+            else if (l.getDataHoraDevolucao().isBefore(agora)) {
                 message = "A data/hora de devolução não pode ser no passado.";
-            } else if (l.getDataHoraDevolucao().isBefore(l.getDataHoraRetirada())) {
+            } 
+            else if (l.getDataHoraDevolucao().isBefore(l.getDataHoraRetirada())) {
                 message = "A data/hora de devolução não pode ser anterior à data/hora de retirada.";
-            } else if (ldao.conflitoHorario(l.getIdEquip(), l.getDataHoraRetirada(), l.getDataHoraDevolucao(), null)) {
+            } 
+            else if (ldao.conflitoHorario(l.getIdEquip(), l.getDataHoraRetirada(), l.getDataHoraDevolucao(), null)) {
                 message = "O equipamento já possui um agendamento conflitante para este período.";
-            } else if (equip.porcentUso() >= 90) {
+            } 
+            else if (equip.porcentUso() >= 90) {
                 message = "Operação bloqueada: A máquina ultrapassou 90% da sua vida útil";
             }
         }
@@ -84,20 +87,31 @@ public class LiberacaoService {
             message = "Data e hora de devolução não informadas";
         } else if (l.getLocalUso() == null || l.getLocalUso().trim().isEmpty()) {
             message = "Local de uso não informado";
-        }else if (l.getDataHoraDevolucao().isBefore(l.getDataHoraRetirada())) {
-            message = "A data/hora de devolução não pode ser anterior à data/hora de retirada";
         }
-        
+
         if (message.isEmpty()) {
+            LocalDateTime agora = LocalDateTime.now();
+            // puxa os dados do equip pro formulario
             EquipDTO equip = edao.findById(l.getIdEquip());
-            
-            if (ldao.conflitoHorario(l.getIdEquip(), l.getDataHoraRetirada(), l.getDataHoraDevolucao(), l.getId())) {
-                message = "O equipamento já possui outro agendamento conflitante para este período.";
-            } else if (equip.porcentUso() >= 90) {
+
+            // regras de negocio para logica de horarios
+            if (l.getDataHoraRetirada().isBefore(agora)) {
+                message = "A data/hora de retirada não pode ser registrada no passado.";
+            } 
+            else if (l.getDataHoraDevolucao().isBefore(agora)) {
+                message = "A data/hora de devolução não pode ser no passado.";
+            } 
+            else if (l.getDataHoraDevolucao().isBefore(l.getDataHoraRetirada())) {
+                message = "A data/hora de devolução não pode ser anterior à data/hora de retirada.";
+            } 
+            else if (ldao.conflitoHorario(l.getIdEquip(), l.getDataHoraRetirada(), l.getDataHoraDevolucao(), null)) {
+                message = "O equipamento já possui um agendamento conflitante para este período.";
+            } 
+            else if (equip.porcentUso() >= 90) {
                 message = "Operação bloqueada: A máquina ultrapassou 90% da sua vida útil";
             }
         }
-        
+
         if (!message.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
@@ -110,30 +124,28 @@ public class LiberacaoService {
     }
 
     // ----------------------- OPERADOR -----------------------
-
     public void pickUp(LiberacaoDTO l) {
         String message = "";
         LocalDateTime agora = LocalDateTime.now();
-        
+
         if (l.getId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID da liberação não encontrado.");
         }
         if (l.getIdEquip() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID do equipamento não encontrado.");
         }
-        
+
         // puxa os dados do equip pro formulario
         EquipDTO equip = edao.findById(l.getIdEquip());
         if (equip == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipamento não encontrado.");
         }
-        
+
         LiberacaoDTO lib = ldao.findById(l.getId());
         if (lib == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Liberação não encontrada.");
         }
-        
-        
+
         if (equip.getStatus().equals("Em Uso") || equip.getStatus().equals("Em Manutenção")) {
             message = "Operação bloqueada: O equipamento está indisponível no momento";
         } else if (equip.getNivelCombustivel() < 25) {
@@ -151,11 +163,11 @@ public class LiberacaoService {
                 message = "O equipamento não pode ser retirado antes da data e hora agendadas";
             }
         }
-        
+
         if (!message.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
-        
+
         // timestamp automatico da retirada 
         l.setDataHoraRetiradaReal(agora);
         // updt de status automatico da retirada 
@@ -168,20 +180,20 @@ public class LiberacaoService {
     public void close(LiberacaoDTO l) {
         String message = "";
         LocalDateTime agora = LocalDateTime.now();
-        
+
         // registro automático - data/hora devolucao
         l.setDataHoraDevolucaoReal(agora);
-        
+
         if (l.getHorimetroFinal() == null) {
             message = "Horímetro final não preenchido";
         } else if (l.getCombustivelFinal() == null) {
             message = "Combustível final não preenchido";
-        } 
+        }
 
         if (message.isEmpty()) {
             if (l.getHorimetroFinal() < l.getHorimetroInicial()) {
                 message = "O horímetro final não pode ser menor do que o horímetro inicial";
-            } 
+            }
         }
 
         // Reportar Problema - observcao obrigatoria
@@ -196,17 +208,17 @@ public class LiberacaoService {
         }
 
         ldao.close(l);
-        
+
         // mandando dados finais automatico num objeto equip
         // Reportar Problema --> setStatus
         // findById --> editEquip (update)
         EquipDTO equip = edao.findById(l.getIdEquip());
-        
+
         if (equip != null) {
             if (l.isAlerta()) {
-                equip.setStatus("Em Manutenção"); 
+                equip.setStatus("Em Manutenção");
             } else {
-                equip.setStatus("Disponível"); 
+                equip.setStatus("Disponível");
             }
 
             equip.setHorasUso(l.getHorimetroFinal());
@@ -215,12 +227,10 @@ public class LiberacaoService {
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipamento não encontrado.");
         }
-        
+
     }
 
-    
     // ----------------------- LISTAS -----------------------
-
     public List<LiberacaoDTO> listAlerta() {
         return ldao.listAlerta();
     }
@@ -235,9 +245,9 @@ public class LiberacaoService {
 
     public List<LiberacaoDTO> listById(Long idUser) {
         return ldao.listById(idUser);
-        
+
     }
-    
+
     public List<LiberacaoDTO> listByOp(Long idUser) {
         return ldao.listByOp(idUser);
     }
@@ -248,26 +258,25 @@ public class LiberacaoService {
 
     public void resolve(Long id) {
         LiberacaoDTO l = ldao.findById(id);
-        
+
         if (l == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Liberação não encontrada.");
         }
-        
+
         EquipDTO equip = edao.findById(l.getIdEquip());
         if (equip == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Equipamento não encontrado.");
         }
-        
+
         // vida útil >= 90
         if (equip.porcentUso() >= 90) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                "Equipamento não pode ser liberado. Horímetro muito alto.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Equipamento não pode ser liberado. Horímetro muito alto.");
         }
-        
-        
+
         equip.setStatus("Disponível");
         edao.editEquip(equip);
         ldao.resolve(id);
     }
-    
+
 }
