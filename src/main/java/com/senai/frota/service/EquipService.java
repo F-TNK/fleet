@@ -47,6 +47,8 @@ public class EquipService {
     }
 
     public int editEquip(EquipDTO equip) {
+        String message = "";
+        
         if (equip.getVidaUtil() == null || equip.getVidaUtil() <= 0){
             throw new IllegalArgumentException(
                     "Vida útil deve ser maior que zero.");
@@ -54,6 +56,17 @@ public class EquipService {
         if(equip.getHorasUso() == null){
             equip.setHorasUso(0.0);
         }
+        if (equip.getVidaUtil() == null || equip.getVidaUtil() <= 0){
+            message = "Vida útil deve ser maior que zero.";
+        }
+        if (equip.getHorasUso() > equip.getVidaUtil()){
+            message = "Horas de uso não podem exceder a vida útil.";
+        }
+        
+        if (!message.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
+        
         return edao.editEquip(equip);
     }
     

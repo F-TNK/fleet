@@ -16,7 +16,7 @@ public class UserDTO {
     private String nome;
     private String cpf;
     private String telefone;
-    private String enderco;
+    private String endereco;
     private String dataNascimento;
     private String cargo; // ADMIN ou OPERADOR
 
@@ -30,7 +30,7 @@ public class UserDTO {
         this.nome = nome;
         this.cpf = cpf;
         this.telefone = telefone;
-        this.enderco = endereço;
+        this.endereco = endereco;
         this.dataNascimento = dataNascimento;
         this.cargo = cargo;
     }
@@ -84,11 +84,11 @@ public class UserDTO {
     }
 
     public String getEndereco() {
-        return enderco;
+        return endereco;
     }
 
-    public void setEndereco(String endereço) {
-        this.enderco = endereço;
+    public void setEndereco(String endereco) {
+        this.endereco = endereco;
     }
 
     public String getDataNascimento() {
