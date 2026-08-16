@@ -146,8 +146,16 @@ public class UserService {
             message = "Nome não preenchido";
         } else if (u.getEmail() == null || u.getEmail().trim().isEmpty()) {
             message = "E-mail não preenchido";
+        } else if (u.getSenha() == null || u.getSenha().trim().isEmpty()) {
+            message = "Senha não preenchida";
         } else if (u.getCpf() == null || u.getCpf().trim().isEmpty()) {
             message = "CPF não preenchido";
+        } else if (u.getTelefone() == null || u.getTelefone().trim().isEmpty()) {
+            message = "Telefone não preenchido";
+        } else if (u.getEndereco() == null || u.getEndereco().trim().isEmpty()) {
+            message = "Endereco não preenchido";
+        } else if (u.getDataNascimento() == null || u.getDataNascimento().trim().isEmpty()) {
+            message = "Data De Nascimento não preenchida";
         }
 
         if (!message.isEmpty()) {
